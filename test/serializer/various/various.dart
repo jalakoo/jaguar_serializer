@@ -2,6 +2,7 @@ library serializer.test.mix.models;
 
 import 'dart:convert';
 import 'package:jaguar_serializer/serializer.dart';
+import 'package:intl/intl.dart';
 import 'package:test/test.dart';
 
 part 'various.g.dart';
@@ -37,9 +38,14 @@ class Inheritance extends ClassB with ClassA {
 }
 
 class Date extends ClassA {
-  DateTime date;
+  DateTime date1;
+  DateTime date2;
+  DateTime isoDate;
 
-  Date([this.date]);
+  Date([this.date1]) {
+    date2 = date1;
+    isoDate = date1;
+  }
 }
 
 class NullTest {
@@ -115,7 +121,8 @@ class InheritanceSerializer extends Serializer<Inheritance>
 }
 
 @GenSerializer()
-@DateTimeProcessor(#date)
+@DateTimeProcessor("EEE, M/d/y", fields: const [#date1, #date2])
+@DateTimeProcessor(null, fields: const [#isoDate])
 class DateSerializer extends Serializer<Date> with _$DateSerializer {
   @override
   Date createModel() => new Date();
@@ -146,9 +153,8 @@ class ModelRenamedSerializer extends Serializer<ModelRenamed>
 }
 
 @GenSerializer()
-@DateTimeProcessor(#dates)
-@RawData(#dynamicMap)
-@RawData(#dynamicList)
+@DateTimeProcessor(null, fields: const [#dates])
+@RawData(fields: const [#dynamicMap, #dynamicList])
 @ProvideSerializer(WithIgnore, WithIgnoreSerializer)
 class ComplexSerializer extends Serializer<Complex> with _$ComplexSerializer {
   @override
@@ -157,16 +163,28 @@ class ComplexSerializer extends Serializer<Complex> with _$ComplexSerializer {
 
 @DefineFieldProcessor()
 class DateTimeProcessor implements FieldProcessor<DateTime, String> {
-  final Symbol field;
+  final List<Symbol> fields;
 
-  const DateTimeProcessor(this.field);
+  final String pattern; //fixme
 
-  DateTime deserialize(String input) {
-    return DateTime.parse(input);
+  final String locale; //fixme
+
+  const DateTimeProcessor(this.pattern, {this.fields, this.locale});
+
+  /// Called to process field before decoding
+  DateTime deserialize(String value) {
+    if (pattern == null) {
+      return DateTime.parse(value);
+    }
+    return new DateFormat(pattern, locale).parse(value);
   }
 
+  /// Called to process field before encoding
   String serialize(DateTime value) {
-    return value.toIso8601String();
+    if (pattern == null) {
+      return value.toIso8601String();
+    }
+    return new DateFormat(pattern, locale).format(value);
   }
 }
 
@@ -245,12 +263,21 @@ void main() {
       DateTime now = new DateTime.now();
 
       Date d = new Date(now);
-      expect(serializer.serialize(d),
-          JSON.encode({"date": now.toIso8601String(), "clazzA": "ClassA"}));
+      print(serializer.serialize(d));
+      expect(
+          serializer.serialize(d),
+          JSON.encode({
+            "date1": new DateFormat("EEE, M/d/y").format(now),
+            "date2": new DateFormat("EEE, M/d/y").format(now),
+            "isoDate": now.toIso8601String(),
+            "clazzA": "ClassA"
+          }));
       expect(
           serializer.serialize(d, withType: true),
           JSON.encode({
-            "date": now.toIso8601String(),
+            "date1": new DateFormat("EEE, M/d/y").format(now),
+            "date2": new DateFormat("EEE, M/d/y").format(now),
+            "isoDate": now.toIso8601String(),
             "clazzA": "ClassA",
             serializer.getTypeKey(): "Date"
           }));
@@ -416,16 +443,21 @@ void main() {
 
     test("DateTimeProcessor", () {
       DateTime now = new DateTime.now();
-      Date d = serializer.deserialize(
-          {"date": now.toIso8601String(), "clazzA": "A"},
-          type: Date);
-      expect(d.date, now);
+      Date d = serializer.deserialize({
+        "date1": new DateFormat("EEE, M/d/y").format(now),
+        "date2": new DateFormat("EEE, M/d/y").format(now),
+        "isoDate": now.toIso8601String(),
+        "clazzA": "A"
+      }, type: Date);
+      expect(d.date1.day, now.day);
       d = serializer.deserialize({
-        "date": now.toIso8601String(),
+        "date1": new DateFormat("EEE, M/d/y").format(now),
+        "date2": new DateFormat("EEE, M/d/y").format(now),
+        "isoDate": now.toIso8601String(),
         "clazzA": "A",
         serializer.getTypeKey(): "Date"
       });
-      expect(d.date, now);
+      expect(d.date1.day, now.day);
     });
 
     test("Null Test", () {

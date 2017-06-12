@@ -9,14 +9,14 @@ part 'user.g.dart';
 @DefineFieldProcessor()
 class DateTimeSerializer implements FieldProcessor<DateTime, String> {
   /// Field in the model to be processed
-  final Symbol field;
+  final List<Symbol> fields;
 
-  final String pattern;
+  final String pattern; //fixme
 
-  final String locale;
+  final String locale; //fixme
 
-  const DateTimeSerializer(this.field,
-      {this.pattern: 'yyyy-MM-dd HH:mm:ss', this.locale});
+  const DateTimeSerializer(
+      {this.fields, this.pattern: 'yyyy-MM-dd HH:mm:ss', this.locale});
 
   /// Called to process field before decoding
   DateTime deserialize(String value) {
@@ -30,7 +30,7 @@ class DateTimeSerializer implements FieldProcessor<DateTime, String> {
 }
 
 @GenSerializer(typeInfo: true)
-@DateTimeSerializer(#dob)
+@DateTimeSerializer(fields: const [#dob])
 @EncodeField(#id, as: 'Id')
 @DecodeField(#id, from: 'Id')
 @EnDecodeField(#name, asAndFrom: 'N')

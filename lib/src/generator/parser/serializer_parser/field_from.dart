@@ -123,9 +123,11 @@ PropertyFrom _parsePropertyFrom(
 
 FieldFrom _parseFieldFrom(SerializerInfo info, ModelField field, String key) {
   if (info.customFieldCodecs.containsKey(field.name)) {
-    String instStr = info.customFieldCodecs[field.name].instantiationString;
     return new FieldFrom(
-        key, field.name, new CustomPropertyFrom("${field.name}$instStr"));
+        key,
+        field.name,
+        new CustomPropertyFrom(
+            info.customFieldCodecs[field.name].name));
   } else {
     return new FieldFrom(
         key, field.name, _parsePropertyFrom(info, field.name, field.type));

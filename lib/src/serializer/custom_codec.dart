@@ -34,7 +34,7 @@ part of jaguar_serializer.serializer;
 ///
 abstract class FieldProcessor<FromType, ToType> {
   /// Field in the model to be processed
-  Symbol get field;
+  List<Symbol> get fields;
 
   /// fixme? (lejard_h) do we really need to store the symbole here ?
 
@@ -63,9 +63,9 @@ abstract class FieldProcessor<FromType, ToType> {
 
 @DefineFieldProcessor()
 class RawData implements FieldProcessor {
-  final Symbol field;
+  final List<Symbol> fields;
 
-  const RawData(this.field);
+  const RawData({this.fields});
 
   @override
   dynamic serialize(dynamic value) => value;

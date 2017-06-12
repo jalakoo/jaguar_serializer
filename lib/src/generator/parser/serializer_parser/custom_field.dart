@@ -1,12 +1,41 @@
 part of jaguar_serializer.generator.parser.serializer;
 
 class CustomFieldCodecInfo {
-  final String instantiationString;
+  final String name;
+  final String type;
+  final NodeListImpl arguments;
 
-  CustomFieldCodecInfo(this.instantiationString);
+  String get instantiationString {
+    var args = arguments
+        .where((node) => node is! NamedExpression)
+        .map((node) => node.toString())
+    .toList();
+
+    arguments
+        .where((node) => node is NamedExpression)
+        .map((node) => node as NamedExpression)
+        .forEach((node) {
+      print("[${node.name.beginToken}]");
+    });
+
+    args.addAll(arguments
+        .where((node) => node is NamedExpression)
+        .map((node) => node as NamedExpression)
+        .where((NamedExpression node) => node.name.beginToken.toString() != "fields")
+        .map((NamedExpression node) => node.toString()));
+
+
+
+    String str = "$type(${args.join(", ")})";
+
+    return str;
+  }
+
+  CustomFieldCodecInfo(this.type, this.name, this.arguments);
 }
 
-void _parseCustomField(SerializerInfo ret, AnnotationElementWrap annot) {
+void _parseCustomField(
+    SerializerInfo ret, AnnotationElementWrap annot, int idx) {
   if (annot.element is! ConstructorElement) {
     return null;
   }
@@ -35,10 +64,18 @@ void _parseCustomField(SerializerInfo ret, AnnotationElementWrap annot) {
     return null;
   }
 
-  String key = annot.constantValue.getField('field').toSymbolValue();
-  ret.customFieldCodecs[key] = new CustomFieldCodecInfo(annot.name);
+  annot.constantValue
+      .getField('fields')
+      .toListValue()
+      .map((DartObject obj) => obj?.toSymbolValue())
+      .where((String v) => v != null)
+      .forEach((String key) {
+    ret.customFieldCodecs[key] = new CustomFieldCodecInfo(
+        annot.name, "_$idx${annot.name}", annot.argumentAst);
+  });
 }
 
 void _collectCustomFields(SerializerInfo ret, ClassElementWrap clazz) {
-  clazz.metadata.forEach((annot) => _parseCustomField(ret, annot));
+  int idx = 1;
+  clazz.metadata.forEach((annot) => _parseCustomField(ret, annot, idx++));
 }

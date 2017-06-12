@@ -9,7 +9,7 @@ part 'book.g.dart';
 
 @GenSerializer()
 @ProvideSerializer(Author, AuthorSerializer)
-@MapKeyNumToStringProcessor(#publishedDates)
+@MapKeyNumToStringProcessor(fields: const [#publishedDates])
 class BookSerializer extends Serializer<Book> with _$BookSerializer {
   Book createModel() => new Book();
 }
@@ -17,9 +17,9 @@ class BookSerializer extends Serializer<Book> with _$BookSerializer {
 @DefineFieldProcessor()
 class MapKeyNumToStringProcessor
     implements FieldProcessor<Map<num, String>, Map<dynamic, String>> {
-  final Symbol field;
+  final List<Symbol> fields;
 
-  const MapKeyNumToStringProcessor(this.field);
+  const MapKeyNumToStringProcessor({this.fields});
 
   Map<num, String> deserialize(final Map<dynamic, String> input) {
     if (input == null) {

@@ -70,12 +70,10 @@ class SerializerWriter {
 
   void _serializedPropertyCustomWriter(
       String key, CustomFieldCodecInfo customProcessor) {
-    if (!_customsProcessors
-        .contains("$key${customProcessor.instantiationString}")) {
-      _customsProcessors.add("$key${customProcessor.instantiationString}");
+    if (!_customsProcessors.contains("${customProcessor.name}")) {
+      _customsProcessors.add("${customProcessor.name}");
       _w.writeln(
-          'final ${customProcessor.instantiationString} $key${customProcessor
-              .instantiationString} = const ${customProcessor.instantiationString}(#$key);');
+          'final ${customProcessor.type} ${customProcessor.name} = const ${customProcessor.instantiationString};');
     }
   }
 

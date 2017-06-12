@@ -8,8 +8,7 @@ part of example.model.user;
 // **************************************************************************
 
 abstract class _$UserViewSerializer implements Serializer<User> {
-  final DateTimeSerializer dobDateTimeSerializer =
-      const DateTimeSerializer(#dob);
+  final DateTimeSerializer fieldDateTimeSerializer = const DateTimeSerializer();
   final BookViewSerializer toBookViewSerializer = new BookViewSerializer();
   final BookViewSerializer fromBookViewSerializer = new BookViewSerializer();
 
@@ -26,7 +25,7 @@ abstract class _$UserViewSerializer implements Serializer<User> {
         ret["N"] = model.name;
       }
       if (model.dob != null) {
-        ret["DoB"] = dobDateTimeSerializer.serialize(model.dob);
+        ret["DoB"] = fieldDateTimeSerializer.serialize(model.dob);
       }
       if (model.book != null) {
         ret["Book"] = toBookViewSerializer.toMap(model.book,
@@ -83,7 +82,7 @@ abstract class _$UserViewSerializer implements Serializer<User> {
     model.id = map["Id"];
     model.email = map["Email"];
     model.name = map["N"];
-    model.dob = dobDateTimeSerializer.deserialize(map["DoB"]);
+    model.dob = fieldDateTimeSerializer.deserialize(map["DoB"]);
     model.book = fromBookViewSerializer.fromMap(map["Book"], typeKey: typeKey);
     model.listStr = map["listStr"]?.map((String val) => val)?.toList();
     model.listBook = map["listBook"]

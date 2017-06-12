@@ -10,8 +10,8 @@ export 'user.dart' show User;
 part 'user_mongo.g.dart';
 
 @GenSerializer()
-@MongoId(#id)
-@DateTimeSerializer(#dob)
+@MongoId(fields: const [#id])
+@DateTimeSerializer(fields: const [#dob])
 @EnDecodeField(#name, asAndFrom: 'N')
 @ProvideSerializer(Book, BookMongoSerializer)
 @IgnoreFields(const [#viewSerializer])
